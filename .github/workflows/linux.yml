@@ -1,0 +1,33 @@
+name: linux
+on:
+  push:
+    branches:
+      - '*'
+    tags-ignore:
+      - '*'
+  pull_request:
+jobs:
+  perl:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        perl-version:
+          - '5.16'
+          - '5.32'
+    container:
+      image: perl:${{ matrix.perl-version }}
+    steps:
+      - uses: actions/checkout@v2
+      - name: perl -V
+        run: perl -V
+      - name: Fix ExtUtils::MakeMaker (for Perl 5.16)
+        run: cpanm -n App::cpanminus ExtUtils::MakeMaker
+      - name: Install dependencies
+        run: |
+          cpanm -n --installdeps .
+          cpanm -n Test::Pod Test::Pod::Coverage
+      - name: Run tests
+        run: |
+          perl Makefile.PL
+          make
+          prove -b -j4 -r -s t
