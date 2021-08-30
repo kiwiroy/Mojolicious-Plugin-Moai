@@ -479,8 +479,22 @@ L<Test::Mojo::Role::Moai>, L<Mojolicious::Guides::Rendering>
 
 use Mojo::Base 'Mojolicious::Plugin';
 use Mojo::File qw( path );
+use List::Util qw(first);
+use Mojolicious::Plugin::Moai::CDN::cdnjs;
+use Mojolicious::Plugin::Moai::CDN::jsdelivr;
+use Mojolicious::Plugin::Moai::CDN::unpkg;
 
-has config =>;
+my $srihashes;
+has config   =>;
+has networks => sub { [] };
+
+sub integrity {
+  my ($self, $url) = @_;
+  _request_subresource_integrity($self, $url) if $self->config->{_warmup_sri};
+  return () unless my $srihash = $srihashes->{$url};
+  return (integrity => $srihash, crossorigin => "anonymous");
+}
+
 sub register {
     my ( $self, $app, $config ) = @_;
     my $library = lc $config->[0];
@@ -491,7 +505,27 @@ sub register {
         $resources->child( $library, 'templates' ),
         $resources->child( 'shared', 'templates' ),
         ;
+    $self->_warmup_subresource_integrity($app, $library);
     return;
+}
+
+sub _request_subresource_integrity {
+  my $self = shift;
+  my $url  = Mojo::URL->new(shift);
+  return if $srihashes->{$url};
+  return unless my $cdn = first { $_->pick($url) } @{$self->networks};
+  my $data = $cdn->match->stack->[$cdn->match->position];
+  $cdn->resource_integrity_p(@$data{qw(library version filepath)}, $srihashes)->wait;
+}
+
+sub _warmup_subresource_integrity {
+  my ($self, $app, $library) = @_;
+  my $config = $self->config;
+  local $config->{_warmup_sri} = 1;
+  return unless $config->{version};
+  push @{$self->networks}, $_->new for (map "Mojolicious::Plugin::Moai::CDN::$_", qw(cdnjs jsdelivr unpkg));
+  $app->build_controller->render_to_string('moai/lib');
+  return;
 }
 
 1;

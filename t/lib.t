@@ -11,10 +11,10 @@ use Test::Mojo;
 use Mojolicious;
 
 subtest 'Bootstrap4' => \&test_lib, 'Bootstrap4',
-    version => '4.0.1',
+    version => '4.6.0',
     css_min_name => 'bootstrap.min.css',
     js_min_name => 'bootstrap.bundle.min.js',
-    js_prereqs => [qw( /jquery- /popper.min.js )],
+    js_prereqs => [qw( /jquery /popper.min.js )],
     ;
 
 subtest 'Bulma' => \&test_lib, 'Bulma',

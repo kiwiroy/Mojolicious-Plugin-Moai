@@ -11,7 +11,7 @@ use Test::More;
 use Mojolicious;
 
 subtest 'Bootstrap4' => \&test_layout, 'Bootstrap4',
-    { version => '4.0.1' },
+    { version => '4.1.0' },
     ;
 
 subtest 'Bulma' => \&test_layout, 'Bulma',

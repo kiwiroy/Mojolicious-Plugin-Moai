@@ -5,5 +5,5 @@
     );
 %>
 % for my $url ( @urls ) {
-    %= stylesheet $url
+    %= stylesheet $url, moai->integrity($url)
 % }

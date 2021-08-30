@@ -1,9 +1,9 @@
 <%
     my $version = stash( 'version' ) // moai->config->{version} // die "No Moai UI library version specified";
     my @urls = (
-        sprintf( '//maxcdn.bootstrapcdn.com/bootstrap/%s/css/bootstrap.min.css', $version ),
+        sprintf( '//cdn.jsdelivr.net/npm/bootstrap@%s/dist/css/bootstrap.min.css', $version ),
     );
 %>
 % for my $url ( @urls ) {
-    %= stylesheet $url
+    %= stylesheet $url, moai->integrity($url)
 % }
